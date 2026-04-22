@@ -1,760 +1,547 @@
 <!DOCTYPE html>
-<html lang="es">
+<html class="dark" lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard de Leads</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Leads · Náutica Aire Libre</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-  :root {
-    --bg: #0a0e1a;
-    --surface: #111827;
-    --surface2: #1a2236;
-    --border: #1e2d47;
-    --accent: #00c6ff;
-    --accent2: #7b5ea7;
-    --green: #00e5a0;
-    --orange: #ff7043;
-    --text: #e8edf5;
-    --muted: #6b7a99;
-    --card-glow: 0 0 30px rgba(0,198,255,0.07);
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#0ea5e9",
+          "ocean": "#075985",
+          "background-dark": "#020617",
+        },
+        fontFamily: { "display": ["Inter", "sans-serif"] },
+      },
+    },
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
+</script>
+<style type="text/tailwindcss">
+  @layer utilities {
+    .glass { @apply bg-white/5 backdrop-blur-xl border border-white/10; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: contain;
+    min-height: max(884px, 100dvh);
   }
-
-  /* Grid de fondo */
-  body::before {
+  .ios-blur {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+  .status-pulse { position: relative; }
+  .status-pulse::after {
     content: '';
-    position: fixed;
+    position: absolute;
     inset: 0;
-    background-image:
-      linear-gradient(rgba(0,198,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,198,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
+    border-radius: 9999px;
+    background: inherit;
+    opacity: 0.6;
+    animation: pulse-ring 2s cubic-bezier(0.455,0.03,0.515,0.955) infinite;
   }
-
-  .wrapper { position: relative; z-index: 1; padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
-
-  /* HEADER */
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 32px;
-    flex-wrap: wrap;
-    gap: 16px;
+  @keyframes pulse-ring {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    50% { transform: scale(1.8); opacity: 0; }
+    100% { transform: scale(0.8); opacity: 0; }
   }
-
-  .header-left h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    background: linear-gradient(135deg, #fff 30%, var(--accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .card-si { background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.18); border-left: 4px solid #10b981; }
+  .card-no { background: rgba(56,189,248,0.05); border-color: rgba(56,189,248,0.18); border-left: 4px solid #38bdf8; }
+  .card-plan { background: rgba(167,139,250,0.05); border-color: rgba(167,139,250,0.18); border-left: 4px solid #a78bfa; }
+  .card-default { background: rgba(148,163,184,0.04); border-color: rgba(148,163,184,0.1); border-left: 4px solid #475569; }
+  .chip-active { background: #0ea5e9; color: #fff; border-color: #0ea5e9; box-shadow: 0 4px 15px rgba(14,165,233,0.3); }
+  .chip-inactive { background: rgba(255,255,255,0.05); color: #94a3b8; border-color: rgba(255,255,255,0.1); }
+  .detail-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(2,6,23,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
   }
-
-  .header-left p {
-    color: var(--muted);
-    font-size: 13px;
-    margin-top: 4px;
-    font-weight: 300;
+  .detail-overlay.open { opacity: 1; pointer-events: all; }
+  .detail-sheet {
+    width: 100%; max-width: 430px; margin: 0 auto;
+    background: #0a0f1a;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px 24px 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 24px);
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+    max-height: 90dvh;
+    overflow-y: auto;
   }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .status-pill {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .status-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 8px var(--green);
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-  }
-
-  .refresh-info { font-size: 12px; color: var(--muted); }
-
-  .btn-refresh {
-    background: linear-gradient(135deg, var(--accent), #0077b6);
-    border: none;
-    color: #fff;
-    padding: 8px 18px;
-    border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: opacity 0.2s, transform 0.1s;
-  }
-
-  .btn-refresh:hover { opacity: 0.85; transform: translateY(-1px); }
-  .btn-refresh:active { transform: translateY(0); }
-
-  .btn-refresh svg { transition: transform 0.4s; }
-  .btn-refresh.loading svg { animation: spin 0.8s linear infinite; }
+  .detail-overlay.open .detail-sheet { transform: translateY(0); }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-
-
-  /* SEARCH */
-  .search-bar {
-    margin-bottom: 24px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  .search-input-wrap {
-    position: relative;
-    flex: 1;
-    min-width: 200px;
-  }
-
-  .search-input-wrap svg {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-  }
-
-  .search-input-wrap input {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 14px 10px 38px;
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .search-input-wrap input:focus { border-color: var(--accent); }
-
-  .filter-select {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    outline: none;
-    cursor: pointer;
-  }
-
-  /* KPI CARDS */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin-bottom: 28px;
-  }
-
-  .kpi-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: var(--card-glow);
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.2s, border-color 0.2s;
-  }
-
-  .kpi-card:hover { transform: translateY(-2px); border-color: rgba(0,198,255,0.3); }
-
-  .kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--kpi-color, var(--accent));
-    border-radius: 14px 14px 0 0;
-  }
-
-  .kpi-icon {
-    font-size: 22px;
-    margin-bottom: 10px;
-  }
-
-  .kpi-value {
-    font-family: 'Syne', sans-serif;
-    font-size: 36px;
-    font-weight: 800;
-    color: var(--kpi-color, var(--accent));
-    line-height: 1;
-    margin-bottom: 6px;
-  }
-
-  .kpi-label {
-    font-size: 12px;
-    color: var(--muted);
-    font-weight: 400;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  /* CHARTS */
-  .charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
-    margin-bottom: 28px;
-  }
-
-  .chart-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 22px;
-    box-shadow: var(--card-glow);
-  }
-
-  .chart-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 18px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .chart-title span {
-    font-size: 16px;
-  }
-
-  .chart-wrap { position: relative; height: 200px; }
-
-  /* TABLE */
-  .table-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 22px;
-    box-shadow: var(--card-glow);
-    overflow-x: auto;
-  }
-
-  .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 18px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .table-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-  }
-
-  .count-badge {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 3px 12px;
-    font-size: 12px;
-    color: var(--accent);
-    font-weight: 500;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13.5px;
-  }
-
-  thead th {
-    text-align: left;
-    padding: 10px 14px;
-    color: var(--muted);
-    font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.7px;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-
-  tbody tr {
-    border-bottom: 1px solid rgba(30,45,71,0.5);
-    transition: background 0.15s;
-  }
-
-  tbody tr:hover { background: rgba(0,198,255,0.04); }
-  tbody tr:last-child { border-bottom: none; }
-
-  tbody td {
-    padding: 11px 14px;
-    color: var(--text);
-    vertical-align: middle;
-  }
-
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  .badge-si { background: rgba(0,229,160,0.12); color: var(--green); border: 1px solid rgba(0,229,160,0.25); }
-  .badge-no { background: rgba(255,112,67,0.12); color: var(--orange); border: 1px solid rgba(255,112,67,0.25); }
-  .badge-plan { background: rgba(0,198,255,0.12); color: var(--accent); border: 1px solid rgba(0,198,255,0.25); }
-  .badge-other { background: rgba(123,94,167,0.12); color: #a78bfa; border: 1px solid rgba(123,94,167,0.25); }
-
-  .name-cell { font-weight: 500; }
-  .phone-cell { font-family: monospace; font-size: 12px; color: var(--muted); }
-
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center;
-    padding: 48px 24px;
-    color: var(--muted);
-  }
-
-  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
-  .empty-state p { font-size: 14px; }
-
-  /* LAST UPDATE */
-  .last-update {
-    text-align: center;
-    color: var(--muted);
-    font-size: 12px;
-    margin-top: 24px;
-    padding-bottom: 24px;
-  }
-
-  /* TOAST */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 20px;
-    font-size: 13px;
-    color: var(--text);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-    transform: translateY(80px);
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.success { border-color: rgba(0,229,160,0.4); }
-  .toast.error { border-color: rgba(255,112,67,0.4); }
-
-  @media (max-width: 600px) {
-    .wrapper { padding: 16px; }
-    .kpi-value { font-size: 28px; }
-    .charts-grid { grid-template-columns: 1fr; }
-  }
+  .spinning { animation: spin 0.8s linear infinite; }
 </style>
 </head>
-<body>
-<div class="wrapper">
+<body class="font-display bg-background-dark text-slate-100 min-h-screen flex justify-center">
+
+<div class="w-full max-w-[430px] min-h-screen bg-background-dark relative flex flex-col overflow-hidden">
+
+  <!-- Ambient glow -->
+  <div class="fixed -top-32 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+  <div class="fixed -bottom-32 -left-32 w-96 h-96 bg-ocean/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
 
   <!-- HEADER -->
-  <header>
-    <div class="header-left">
-      <h1>📋 Dashboard de Leads</h1>
-      <p>Datos en tiempo real desde Google Sheets</p>
-    </div>
-    <div class="header-right">
-      <div class="status-pill">
-        <div class="status-dot"></div>
-        <span id="statusText">Conectado</span>
+  <header class="sticky top-0 z-50 bg-background-dark/80 ios-blur px-5 pt-12 pb-2 border-b border-white/5">
+    <div class="flex justify-between items-center mb-5">
+      <div>
+        <h1 class="text-2xl font-extrabold tracking-tight text-white">Leads</h1>
+        <p class="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-0.5">Náutica Aire Libre</p>
       </div>
-      <span class="refresh-info" id="nextRefresh">Próximo refresh en 30s</span>
-      <button class="btn-refresh" id="btnRefresh" onclick="fetchData(true)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="23 4 23 10 17 10"></polyline>
-          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-        </svg>
-        Actualizar
-      </button>
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 px-3 py-1.5 glass rounded-full text-[10px] font-bold text-slate-400">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 status-pulse"></span>
+          <span id="statusText">Live</span>
+        </div>
+        <button id="btnRefresh" onclick="fetchData(true)" class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-transform">
+          <span class="material-symbols-outlined text-xl" id="refreshIcon">sync</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI chips scrollables -->
+    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-3">
+      <div class="flex-shrink-0 glass rounded-2xl px-4 py-2.5 flex flex-col min-w-[68px]" style="border-left:4px solid #0ea5e9">
+        <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Total</span>
+        <span class="text-lg font-black text-white" id="kpiTotal">—</span>
+      </div>
+      <div class="flex-shrink-0 rounded-2xl px-4 py-2.5 flex flex-col min-w-[76px]" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-left:4px solid #10b981">
+        <span class="text-[9px] text-emerald-500/70 font-bold uppercase tracking-wider">Entregan</span>
+        <span class="text-lg font-black text-emerald-400" id="kpiUsado">—</span>
+      </div>
+      <div class="flex-shrink-0 rounded-2xl px-4 py-2.5 flex flex-col min-w-[76px]" style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);border-left:4px solid #a78bfa">
+        <span class="text-[9px] font-bold uppercase tracking-wider" style="color:rgba(167,139,250,0.7)">Plan/Fin</span>
+        <span class="text-lg font-black" style="color:#a78bfa" id="kpiFinanciacion">—</span>
+      </div>
+      <div class="flex-shrink-0 rounded-2xl px-4 py-2.5 flex flex-col min-w-[68px]" style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-left:4px solid #38bdf8">
+        <span class="text-[9px] text-sky-400/70 font-bold uppercase tracking-wider">Sin fin.</span>
+        <span class="text-lg font-black text-sky-400" id="kpiNo">—</span>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="flex gap-2 pb-3">
+      <button onclick="setFilter('todos')" id="chip-todos" class="chip-active flex-1 py-2 text-[11px] font-black uppercase tracking-tight rounded-xl border transition-all">Todos</button>
+      <button onclick="setFilter('si')" id="chip-si" class="chip-inactive flex-1 py-2 text-[11px] font-black uppercase tracking-tight rounded-xl border transition-all">Entregan</button>
+      <button onclick="setFilter('no')" id="chip-no" class="chip-inactive flex-1 py-2 text-[11px] font-black uppercase tracking-tight rounded-xl border transition-all">No entregan</button>
+    </div>
+
+    <!-- Search -->
+    <div class="relative mb-3">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl select-none">search</span>
+      <input id="searchInput" oninput="renderCards()" type="text" placeholder="Buscar nombre o teléfono..."
+        class="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-primary/50 transition-colors"/>
     </div>
   </header>
 
-  <!-- SEARCH + FILTERS -->
-  <div class="search-bar">
-    <div class="search-input-wrap">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input type="text" id="searchInput" placeholder="Buscar por nombre o teléfono..." oninput="renderTable()">
+  <!-- MAIN -->
+  <main class="flex-1 px-4 pt-5 pb-32 overflow-y-auto space-y-3" id="cardContainer">
+    <div class="flex flex-col items-center justify-center py-20 text-slate-500">
+      <span class="material-symbols-outlined text-5xl mb-3 spinning">sync</span>
+      <p class="text-sm font-medium">Cargando leads...</p>
     </div>
-    <select class="filter-select" id="filterUsado" onchange="renderTable()">
-      <option value="">Todos - Entrega Usado</option>
-      <option value="si">✅ Sí entrega</option>
-      <option value="no">❌ No entrega</option>
-    </select>
-    <select class="filter-select" id="filterFinanciacion" onchange="renderTable()">
-      <option value="">Todos - Financiación</option>
-      <option value="si">✅ Con financiación</option>
-      <option value="no">❌ Sin financiación</option>
-      <option value="plan">📋 Plan</option>
-    </select>
-  </div>
+  </main>
 
-  <!-- KPIs -->
-  <div class="kpi-grid" id="kpiGrid">
-    <div class="kpi-card" style="--kpi-color: var(--accent)">
-      <div class="kpi-icon">👥</div>
-      <div class="kpi-value" id="kpiTotal">—</div>
-      <div class="kpi-label">Total de Leads</div>
-    </div>
-    <div class="kpi-card" style="--kpi-color: var(--green)">
-      <div class="kpi-icon">🔄</div>
-      <div class="kpi-value" id="kpiUsado">—</div>
-      <div class="kpi-label">Entregan Usado</div>
-    </div>
-    <div class="kpi-card" style="--kpi-color: #a78bfa">
-      <div class="kpi-icon">💳</div>
-      <div class="kpi-value" id="kpiFinanciacion">—</div>
-      <div class="kpi-label">Con Financiación</div>
-    </div>
-    <div class="kpi-card" style="--kpi-color: var(--orange)">
-      <div class="kpi-icon">📋</div>
-      <div class="kpi-value" id="kpiPlanes">—</div>
-      <div class="kpi-label">En Plan/Lancha</div>
-    </div>
-  </div>
+  <!-- BOTTOM NAV -->
+  <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-background-dark/90 ios-blur border-t border-white/5 px-8 pt-3 pb-8 flex justify-between items-center z-50">
+    <button class="flex flex-col items-center gap-1 text-primary">
+      <span class="material-symbols-outlined">group</span>
+      <span class="text-[10px] font-bold">Leads</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-slate-500" onclick="toggleCharts()">
+      <span class="material-symbols-outlined">analytics</span>
+      <span class="text-[10px] font-bold">Gráficos</span>
+    </button>
+    <button class="flex flex-col items-center gap-1 text-slate-500" onclick="fetchData(true)">
+      <span class="material-symbols-outlined">cloud_sync</span>
+      <span class="text-[10px] font-bold" id="nextRefresh">30s</span>
+    </button>
+  </nav>
 
-  <!-- CHARTS -->
-  <div class="charts-grid">
-    <div class="chart-card">
-      <div class="chart-title"><span>🔄</span> Entrega de Usado</div>
-      <div class="chart-wrap"><canvas id="chartUsado"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title"><span>💳</span> Tipo de Financiación</div>
-      <div class="chart-wrap"><canvas id="chartFinanciacion"></canvas></div>
-    </div>
-  </div>
+</div>
 
-  <!-- TABLE -->
-  <div class="table-card">
-    <div class="table-header">
-      <div class="table-title">📋 Lista de Leads</div>
-      <div class="count-badge" id="tableCount">0 leads</div>
+<!-- CHARTS OVERLAY -->
+<div id="chartsOverlay" class="detail-overlay">
+  <div class="detail-sheet">
+    <div class="flex justify-center pt-3 pb-2">
+      <div class="w-10 h-1 bg-white/20 rounded-full"></div>
     </div>
-    <div id="tableContainer">
-      <div class="empty-state">
-        <div class="icon">⏳</div>
-        <p>Cargando datos...</p>
+    <div class="px-5 pb-8">
+      <div class="flex justify-between items-center mb-5">
+        <h2 class="text-lg font-black text-white">Análisis de Leads</h2>
+        <button onclick="toggleCharts()" class="w-8 h-8 glass rounded-full flex items-center justify-center text-slate-400 border border-white/10">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+      <div class="rounded-2xl p-4 mb-4" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07)">
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Entrega de Usado</p>
+        <div style="height:180px;position:relative"><canvas id="chartUsado"></canvas></div>
+      </div>
+      <div class="rounded-2xl p-4" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07)">
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Tipo de Financiación</p>
+        <div style="height:180px;position:relative"><canvas id="chartFin"></canvas></div>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="last-update" id="lastUpdate"></div>
+<!-- DETAIL OVERLAY -->
+<div id="detailOverlay" class="detail-overlay">
+  <div class="detail-sheet" id="detailSheet"></div>
 </div>
 
 <!-- TOAST -->
-<div class="toast" id="toast"></div>
+<div id="toast" class="fixed bottom-28 left-1/2 -translate-x-1/2 z-[200] bg-slate-800 border border-white/10 backdrop-blur-xl px-5 py-3 rounded-2xl text-sm font-semibold text-white shadow-2xl opacity-0 pointer-events-none transition-all duration-300 whitespace-nowrap"></div>
 
 <script>
-let allData = [];
-let chartUsado = null;
-let chartFinanciacion = null;
-let countdownInterval = null;
-let refreshInterval = null;
-const REFRESH_SECONDS = 30;
-
 const SHEET_ID = '1eYVpy1qEdCy91aqyV77jTkqFbYPOT4ubSouZokIXLSk';
 const SHEET_GID = '0';
+const REFRESH_SECONDS = 30;
 
-function getSheetUrl() {
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+let allData = [];
+let currentFilter = 'todos';
+let countdown = REFRESH_SECONDS;
+let countdownTimer = null;
+let refreshTimer = null;
+let chartUsado = null, chartFin = null;
+
+function norm(s) {
+  return (s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
 
-function showToast(msg, type = 'success') {
-  const t = document.getElementById('toast');
-  t.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
-  t.className = `toast ${type} show`;
-  setTimeout(() => t.className = 'toast', 3000);
-}
-
-function normalizeText(str) {
-  return (str || '').trim().toLowerCase();
-}
-
-async function fetchData(manual = false) {
-  const btn = document.getElementById('btnRefresh');
-  btn.classList.add('loading');
-
-  try {
-    const url = getSheetUrl();
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('No se pudo acceder al sheet');
-    const csv = await res.text();
-
-    const result = Papa.parse(csv, { header: true, skipEmptyLines: true });
-    allData = result.data;
-
-    updateKPIs();
-    updateCharts();
-    renderTable();
-
-    const now = new Date().toLocaleTimeString('es-AR');
-    document.getElementById('lastUpdate').textContent = `Última actualización: ${now}`;
-    document.getElementById('statusText').textContent = 'Conectado';
-
-    if (manual) showToast(`${allData.length} leads cargados`);
-    resetCountdown();
-
-  } catch (err) {
-    document.getElementById('statusText').textContent = 'Error';
-    showToast('No se pudo cargar el sheet. Verificá que sea público.', 'error');
-    console.error(err);
-  }
-
-  btn.classList.remove('loading');
-}
-
-function resetCountdown() {
-  clearInterval(countdownInterval);
-  clearInterval(refreshInterval);
-  let secs = REFRESH_SECONDS;
-  document.getElementById('nextRefresh').textContent = `Próximo refresh en ${secs}s`;
-  countdownInterval = setInterval(() => {
-    secs--;
-    document.getElementById('nextRefresh').textContent = `Próximo refresh en ${secs}s`;
-    if (secs <= 0) { clearInterval(countdownInterval); }
-  }, 1000);
-  refreshInterval = setTimeout(() => fetchData(false), REFRESH_SECONDS * 1000);
-}
-
-function updateKPIs() {
-  const total = allData.length;
-  const usado = allData.filter(r => normalizeText(r['entrega usado']) === 'si').length;
-  const financiados = allData.filter(r => {
-    const f = normalizeText(r['Financiacion'] || r['financiacion'] || r['Financiación'] || '');
-    return f === 'si' || f === 'sí';
-  }).length;
-  const planes = allData.filter(r => {
-    const f = normalizeText(r['Financiacion'] || r['financiacion'] || r['Financiación'] || '');
-    return f.includes('plan') || f.includes('lancha');
-  }).length;
-
-  animateNumber('kpiTotal', total);
-  animateNumber('kpiUsado', usado);
-  animateNumber('kpiFinanciacion', financiados);
-  animateNumber('kpiPlanes', planes);
-}
-
-function animateNumber(id, target) {
-  const el = document.getElementById(id);
-  const start = parseInt(el.textContent) || 0;
-  const steps = 20;
-  const step = (target - start) / steps;
-  let current = start;
-  let i = 0;
-  const t = setInterval(() => {
-    current += step;
-    i++;
-    el.textContent = Math.round(current);
-    if (i >= steps) { el.textContent = target; clearInterval(t); }
-  }, 16);
-}
-
-function getColumnValue(row, ...keys) {
+function col(row, ...keys) {
   for (const k of keys) {
-    if (row[k] !== undefined) return row[k];
+    const found = Object.keys(row).find(rk => norm(rk) === norm(k));
+    if (found !== undefined && row[found] !== undefined) return row[found];
   }
   return '';
 }
 
-function updateCharts() {
-  const usadoCounts = { 'Sí': 0, 'No': 0, 'Otro': 0 };
-  const finCounts = {};
+function showToast(msg, ok=true) {
+  const t = document.getElementById('toast');
+  t.textContent = (ok ? '✅ ' : '❌ ') + msg;
+  t.style.opacity = '1';
+  setTimeout(() => { t.style.opacity = '0'; }, 2800);
+}
 
-  allData.forEach(r => {
-    const usado = normalizeText(getColumnValue(r, 'entrega usado', 'Entrega usado', 'entrega_usado'));
-    if (usado === 'si' || usado === 'sí') usadoCounts['Sí']++;
-    else if (usado === 'no') usadoCounts['No']++;
-    else usadoCounts['Otro']++;
+async function fetchData(manual=false) {
+  const icon = document.getElementById('refreshIcon');
+  icon.classList.add('spinning');
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error();
+    const csv = await res.text();
+    const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
+    allData = parsed.data;
+    updateKPIs();
+    renderCards();
+    if (document.getElementById('chartsOverlay').classList.contains('open')) buildCharts();
+    document.getElementById('statusText').textContent = 'Live';
+    if (manual) showToast(`${allData.length} leads cargados`);
+    resetCountdown();
+  } catch(e) {
+    document.getElementById('statusText').textContent = 'Error';
+    showToast('No se pudo cargar el sheet', false);
+  }
+  icon.classList.remove('spinning');
+}
 
-    const fin = (getColumnValue(r, 'Financiacion', 'financiacion', 'Financiación') || 'Sin datos').trim();
-    const finKey = fin.charAt(0).toUpperCase() + fin.slice(1).toLowerCase();
-    finCounts[finKey] = (finCounts[finKey] || 0) + 1;
-  });
+function updateKPIs() {
+  const total = allData.length;
+  const usado = allData.filter(r => norm(col(r,'entrega usado','entrega_usado')) === 'si').length;
+  const finSi = allData.filter(r => {
+    const f = norm(col(r,'financiacion','financiacion'));
+    return f.includes('plan') || f === 'si' || f === 'si';
+  }).length;
+  const finNo = allData.filter(r => norm(col(r,'financiacion','financiacion')) === 'no').length;
 
-  const chartDefaults = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        labels: { color: '#6b7a99', font: { family: 'DM Sans', size: 12 }, padding: 16 }
-      }
-    }
-  };
-
-  // Chart Usado
-  if (chartUsado) chartUsado.destroy();
-  chartUsado = new Chart(document.getElementById('chartUsado'), {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(usadoCounts).filter(k => usadoCounts[k] > 0),
-      datasets: [{
-        data: Object.values(usadoCounts).filter(v => v > 0),
-        backgroundColor: ['rgba(0,229,160,0.8)', 'rgba(255,112,67,0.8)', 'rgba(107,122,153,0.5)'],
-        borderColor: ['#00e5a0', '#ff7043', '#6b7a99'],
-        borderWidth: 1.5,
-        hoverOffset: 6
-      }]
-    },
-    options: { ...chartDefaults, cutout: '65%' }
-  });
-
-  // Chart Financiación
-  if (chartFinanciacion) chartFinanciacion.destroy();
-  const finLabels = Object.keys(finCounts);
-  const finColors = ['rgba(0,198,255,0.8)', 'rgba(167,139,250,0.8)', 'rgba(0,229,160,0.8)', 'rgba(255,112,67,0.8)', 'rgba(251,191,36,0.8)'];
-  chartFinanciacion = new Chart(document.getElementById('chartFinanciacion'), {
-    type: 'bar',
-    data: {
-      labels: finLabels,
-      datasets: [{
-        label: 'Leads',
-        data: finLabels.map(k => finCounts[k]),
-        backgroundColor: finLabels.map((_, i) => finColors[i % finColors.length]),
-        borderRadius: 6,
-        borderSkipped: false,
-      }]
-    },
-    options: {
-      ...chartDefaults,
-      scales: {
-        x: { ticks: { color: '#6b7a99', font: { family: 'DM Sans' } }, grid: { color: 'rgba(30,45,71,0.5)' } },
-        y: { ticks: { color: '#6b7a99', font: { family: 'DM Sans' }, stepSize: 1 }, grid: { color: 'rgba(30,45,71,0.5)' }, beginAtZero: true }
-      },
-      plugins: { ...chartDefaults.plugins, legend: { display: false } }
-    }
+  [['kpiTotal',total],['kpiUsado',usado],['kpiFinanciacion',finSi],['kpiNo',finNo]].forEach(([id,target]) => {
+    const el = document.getElementById(id);
+    let n = 0;
+    clearInterval(el._t);
+    el._t = setInterval(() => {
+      n = Math.min(n + Math.ceil(target/20), target);
+      el.textContent = n;
+      if (n >= target) clearInterval(el._t);
+    }, 30);
   });
 }
 
-function getBadgeClass(val) {
-  const v = normalizeText(val);
-  if (v === 'si' || v === 'sí') return 'badge-si';
-  if (v === 'no') return 'badge-no';
-  if (v.includes('plan') || v.includes('lancha')) return 'badge-plan';
-  return 'badge-other';
+function getCardStyle(row) {
+  const u = norm(col(row,'entrega usado','entrega_usado'));
+  const f = norm(col(row,'financiacion','financiacion'));
+  if (u === 'si') return { cls:'card-si', color:'#10b981', label:'ENTREGA USADO', badgeCls:'bg-emerald-500 text-emerald-950' };
+  if (f.includes('plan')) return { cls:'card-plan', color:'#a78bfa', label:'CON PLAN', badgeCls:'bg-violet-500 text-white' };
+  if (f === 'si') return { cls:'card-plan', color:'#a78bfa', label:'FINANCIADO', badgeCls:'bg-violet-500 text-white' };
+  if (u === 'no' || f === 'no') return { cls:'card-no', color:'#38bdf8', label:'SIN ENTREGA', badgeCls:'bg-sky-800 text-sky-200' };
+  return { cls:'card-default', color:'#475569', label:'LEAD', badgeCls:'bg-slate-700 text-slate-300' };
 }
 
-function renderTable() {
-  const search = normalizeText(document.getElementById('searchInput').value);
-  const filterUsado = normalizeText(document.getElementById('filterUsado').value);
-  const filterFin = normalizeText(document.getElementById('filterFinanciacion').value);
+function finBadge(val) {
+  const v = norm(val);
+  if (v === 'si') return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-emerald-950">SI</span>`;
+  if (v === 'no') return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-700 text-slate-300">NO</span>`;
+  if (v.includes('plan')) return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-violet-600 text-white">PLAN</span>`;
+  if (val && val !== '—') return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-700 text-slate-300">${val}</span>`;
+  return `<span class="text-slate-500 text-xs">—</span>`;
+}
 
-  let filtered = allData.filter(r => {
-    const nombre = normalizeText(r['Nombre'] || '');
-    const tel = normalizeText(r['Teléfono'] || r['Telefono'] || '');
-    const usado = normalizeText(getColumnValue(r, 'entrega usado', 'Entrega usado'));
-    const fin = normalizeText(getColumnValue(r, 'Financiacion', 'financiacion', 'Financiación'));
+function renderCards() {
+  const search = norm(document.getElementById('searchInput').value);
+  let data = [...allData];
 
-    const matchSearch = !search || nombre.includes(search) || tel.includes(search);
-    const matchUsado = !filterUsado || usado.startsWith(filterUsado);
-    const matchFin = !filterFin || fin.startsWith(filterFin) || (filterFin === 'plan' && fin.includes('plan'));
+  if (currentFilter === 'si') data = data.filter(r => norm(col(r,'entrega usado','entrega_usado')) === 'si');
+  else if (currentFilter === 'no') data = data.filter(r => norm(col(r,'entrega usado','entrega_usado')) === 'no');
 
-    return matchSearch && matchUsado && matchFin;
+  if (search) data = data.filter(r => {
+    return norm(col(r,'nombre','Nombre')).includes(search) ||
+           norm(col(r,'telefono','teléfono','Telefono','Teléfono')).includes(search);
   });
 
-  document.getElementById('tableCount').textContent = `${filtered.length} lead${filtered.length !== 1 ? 's' : ''}`;
+  const container = document.getElementById('cardContainer');
 
-  if (filtered.length === 0) {
-    document.getElementById('tableContainer').innerHTML = `
-      <div class="empty-state">
-        <div class="icon">🔍</div>
-        <p>No se encontraron leads con esos filtros.</p>
-      </div>`;
+  if (data.length === 0) {
+    container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 text-slate-500">
+      <span class="material-symbols-outlined text-5xl mb-3">search_off</span>
+      <p class="text-sm font-medium">Sin resultados</p></div>`;
     return;
   }
 
-  const rows = filtered.map((r, i) => {
-    const nombre = r['Nombre'] || '—';
-    const tel = r['Teléfono'] || r['Telefono'] || '—';
-    const usado = getColumnValue(r, 'entrega usado', 'Entrega usado') || '—';
-    const fin = getColumnValue(r, 'Financiacion', 'financiacion', 'Financiación') || '—';
-
-    return `<tr>
-      <td><span style="color:var(--muted);font-size:11px;">${i+1}</span></td>
-      <td class="name-cell">${nombre}</td>
-      <td class="phone-cell">📞 ${tel}</td>
-      <td><span class="badge ${getBadgeClass(usado)}">${usado}</span></td>
-      <td><span class="badge ${getBadgeClass(fin)}">${fin}</span></td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('tableContainer').innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Nombre</th>
-          <th>Teléfono</th>
-          <th>Entrega Usado</th>
-          <th>Financiación</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+  container.innerHTML = `
+    <div class="flex items-center justify-between px-1 mb-2">
+      <h2 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${data.length} leads</h2>
+      <div class="flex items-center gap-1.5 text-[10px] font-bold text-primary">
+        <span>LIVE</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-primary status-pulse"></span>
+      </div>
+    </div>
+    ${data.map(r => buildCard(r, allData.indexOf(r))).join('')}
+    <div class="py-10 text-center">
+      <span class="material-symbols-outlined text-slate-700 text-3xl">anchor</span>
+      <p class="text-slate-600 text-xs mt-1 italic">Fin de la lista</p>
+    </div>`;
 }
 
-// Iniciar
+function buildCard(row, idx) {
+  const nombre = col(row,'nombre','Nombre') || 'Sin nombre';
+  const tel = col(row,'telefono','teléfono','Telefono','Teléfono') || '—';
+  const usado = col(row,'entrega usado','entrega_usado','Entrega usado') || '—';
+  const fin = col(row,'financiacion','financiacion') || '—';
+  const st = getCardStyle(row);
+
+  return `
+  <div class="${st.cls} rounded-3xl p-5 border backdrop-blur-xl shadow-sm cursor-pointer active:scale-[0.98] transition-transform" onclick="openDetail(${idx})">
+    <div class="flex justify-between items-start mb-4">
+      <div class="flex-1 min-w-0 pr-3">
+        <h3 class="text-lg font-bold text-white leading-tight truncate">${nombre}</h3>
+        <div class="flex items-center gap-1.5 mt-1">
+          <span class="material-symbols-outlined" style="font-size:13px;color:${st.color}">phone</span>
+          <span class="text-sm text-slate-400 font-medium">${tel}</span>
+        </div>
+      </div>
+      <span class="flex-shrink-0 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tight ${st.badgeCls}">${st.label}</span>
+    </div>
+    <div class="grid grid-cols-2 gap-3 py-3 border-y mb-3" style="border-color:${st.color}20">
+      <div>
+        <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Entrega Usado</p>
+        ${finBadge(usado)}
+      </div>
+      <div class="text-right">
+        <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Financiación</p>
+        ${finBadge(fin)}
+      </div>
+    </div>
+    <div class="flex items-center justify-center gap-1.5 py-2 rounded-2xl text-xs font-bold transition-colors" style="background:${st.color}12;color:${st.color};border:1px solid ${st.color}25">
+      Ver detalles
+      <span class="material-symbols-outlined text-base">chevron_right</span>
+    </div>
+  </div>`;
+}
+
+function openDetail(idx) {
+  const row = allData[idx];
+  const nombre = col(row,'nombre','Nombre') || 'Sin nombre';
+  const tel = col(row,'telefono','teléfono','Telefono','Teléfono') || '—';
+  const usado = col(row,'entrega usado','entrega_usado','Entrega usado') || '—';
+  const fin = col(row,'financiacion','financiacion') || '—';
+  const st = getCardStyle(row);
+  const waNum = tel.replace(/\D/g,'');
+
+  document.getElementById('detailSheet').innerHTML = `
+    <div class="flex justify-center pt-3 pb-1"><div class="w-10 h-1 bg-white/20 rounded-full"></div></div>
+    <div class="px-5 pb-8">
+      <div class="rounded-3xl p-5 mb-5 relative overflow-hidden" style="background:linear-gradient(135deg,${st.color}25,${st.color}08);border:1px solid ${st.color}20">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-[9px] font-black uppercase tracking-widest mb-1" style="color:${st.color}80">Detalle de Lead</p>
+            <h2 class="text-2xl font-black text-white leading-tight">${nombre}</h2>
+          </div>
+          <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase flex-shrink-0 ${st.badgeCls}">${st.label}</span>
+        </div>
+        <span class="material-symbols-outlined absolute -bottom-5 -right-5 pointer-events-none select-none" style="font-size:100px;color:${st.color}12">directions_boat</span>
+      </div>
+
+      <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Contacto</p>
+      <div class="space-y-3 mb-5">
+        <div class="glass rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background:${st.color}15">
+            <span class="material-symbols-outlined" style="color:${st.color}">person</span>
+          </div>
+          <div>
+            <p class="text-[9px] text-slate-500 font-bold uppercase">Nombre</p>
+            <p class="text-base font-bold text-white">${nombre}</p>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-emerald-400">call</span>
+          </div>
+          <div class="flex-1">
+            <p class="text-[9px] text-slate-500 font-bold uppercase">Teléfono</p>
+            <p class="text-base font-bold text-white">${tel}</p>
+          </div>
+          <div class="flex gap-2">
+            <a href="tel:${tel}" class="w-9 h-9 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 active:bg-emerald-500/30 transition-colors">
+              <span class="material-symbols-outlined text-lg">phone</span>
+            </a>
+            <a href="https://wa.me/${waNum}" target="_blank" class="w-9 h-9 rounded-full bg-emerald-600/15 border border-emerald-600/30 flex items-center justify-center text-emerald-300 active:bg-emerald-600/30 transition-colors">
+              <span class="material-symbols-outlined text-lg">chat</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Datos del Lead</p>
+      <div class="grid grid-cols-2 gap-3 mb-5">
+        <div class="glass rounded-2xl p-4">
+          <p class="text-[9px] text-slate-500 font-bold uppercase mb-2">Entrega Usado</p>
+          ${finBadge(usado)}
+        </div>
+        <div class="glass rounded-2xl p-4">
+          <p class="text-[9px] text-slate-500 font-bold uppercase mb-2">Financiación</p>
+          ${finBadge(fin)}
+        </div>
+      </div>
+
+      <div class="glass rounded-3xl p-3 flex gap-2">
+        <a href="https://wa.me/${waNum}" target="_blank"
+          class="flex-1 h-12 bg-emerald-600 active:bg-emerald-500 active:scale-95 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-1.5 transition-all uppercase tracking-wide">
+          <span class="material-symbols-outlined text-lg">chat</span>WhatsApp
+        </a>
+        <a href="tel:${tel}"
+          class="flex-1 h-12 bg-primary active:bg-primary/90 active:scale-95 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-1.5 transition-all uppercase tracking-wide">
+          <span class="material-symbols-outlined text-lg">call</span>Llamar
+        </a>
+        <button onclick="closeDetail()"
+          class="w-12 h-12 glass rounded-2xl flex items-center justify-center text-slate-400 active:bg-white/10 transition-all">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+    </div>`;
+
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('open');
+}
+
+function toggleCharts() {
+  const ov = document.getElementById('chartsOverlay');
+  ov.classList.toggle('open');
+  if (ov.classList.contains('open')) buildCharts();
+}
+
+function buildCharts() {
+  const usadoCounts = { 'Sí': 0, 'No': 0, 'Otro': 0 };
+  const finCounts = {};
+  allData.forEach(r => {
+    const u = norm(col(r,'entrega usado','entrega_usado'));
+    if (u === 'si') usadoCounts['Sí']++;
+    else if (u === 'no') usadoCounts['No']++;
+    else usadoCounts['Otro']++;
+    const f = (col(r,'financiacion','financiacion') || 'Sin datos').trim();
+    const fk = f.charAt(0).toUpperCase() + f.slice(1).toLowerCase();
+    finCounts[fk] = (finCounts[fk]||0)+1;
+  });
+
+  const base = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#94a3b8', font:{ family:'Inter', size:11 }, padding:12 } } } };
+  if (chartUsado) chartUsado.destroy();
+  chartUsado = new Chart(document.getElementById('chartUsado'), {
+    type:'doughnut',
+    data:{ labels:['Sí','No','Otro'], datasets:[{
+      data:[usadoCounts['Sí'],usadoCounts['No'],usadoCounts['Otro']],
+      backgroundColor:['rgba(16,185,129,0.8)','rgba(56,189,248,0.8)','rgba(71,85,105,0.5)'],
+      borderColor:['#10b981','#38bdf8','#475569'], borderWidth:1.5, hoverOffset:6
+    }]},
+    options:{ ...base, cutout:'65%' }
+  });
+
+  if (chartFin) chartFin.destroy();
+  const fl = Object.keys(finCounts);
+  const colors = ['rgba(167,139,250,0.8)','rgba(16,185,129,0.8)','rgba(56,189,248,0.8)','rgba(251,191,36,0.8)','rgba(248,113,113,0.8)'];
+  chartFin = new Chart(document.getElementById('chartFin'), {
+    type:'bar',
+    data:{ labels:fl, datasets:[{
+      data:fl.map(k=>finCounts[k]),
+      backgroundColor:fl.map((_,i)=>colors[i%colors.length]),
+      borderRadius:6, borderSkipped:false
+    }]},
+    options:{ ...base,
+      scales:{
+        x:{ ticks:{ color:'#94a3b8', font:{family:'Inter'} }, grid:{ color:'rgba(255,255,255,0.05)' } },
+        y:{ ticks:{ color:'#94a3b8', stepSize:1 }, grid:{ color:'rgba(255,255,255,0.05)' }, beginAtZero:true }
+      },
+      plugins:{ ...base.plugins, legend:{ display:false } }
+    }
+  });
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  ['todos','si','no'].forEach(id => {
+    document.getElementById(`chip-${id}`).className =
+      document.getElementById(`chip-${id}`).className
+        .replace(/chip-(active|inactive)/g,'') +
+      (id === f ? ' chip-active' : ' chip-inactive');
+  });
+  renderCards();
+}
+
+function resetCountdown() {
+  clearInterval(countdownTimer);
+  clearTimeout(refreshTimer);
+  countdown = REFRESH_SECONDS;
+  countdownTimer = setInterval(() => {
+    countdown--;
+    document.getElementById('nextRefresh').textContent = `${countdown}s`;
+    if (countdown <= 0) clearInterval(countdownTimer);
+  }, 1000);
+  refreshTimer = setTimeout(() => fetchData(false), REFRESH_SECONDS * 1000);
+}
+
+['detailOverlay','chartsOverlay'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
 fetchData(true);
 </script>
 </body>
 </html>
+
