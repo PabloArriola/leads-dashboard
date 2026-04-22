@@ -379,7 +379,11 @@ function openDetail(idx) {
   const usado = col(row,'entrega usado','entrega_usado','Entrega usado') || '—';
   const fin = col(row,'financiacion','financiacion') || '—';
   const st = getCardStyle(row);
-  const waNum = tel.replace(/\D/g,'');
+  let waNum = tel.replace(/\D/g,'');
+  if (waNum && !waNum.startsWith('54')) {
+    if (waNum.startsWith('0')) waNum = waNum.substring(1);
+    waNum = '549' + waNum;
+  }
 
   document.getElementById('detailSheet').innerHTML = `
     <div class="flex justify-center pt-3 pb-1"><div class="w-10 h-1 bg-white/20 rounded-full"></div></div>
@@ -418,7 +422,7 @@ function openDetail(idx) {
             <a href="tel:${tel}" class="w-9 h-9 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 active:bg-emerald-500/30 transition-colors">
               <span class="material-symbols-outlined text-lg">phone</span>
             </a>
-            <a href="https://wa.me/${waNum}" target="_blank" class="w-9 h-9 rounded-full bg-emerald-600/15 border border-emerald-600/30 flex items-center justify-center text-emerald-300 active:bg-emerald-600/30 transition-colors">
+            <a href="https://api.whatsapp.com/send?phone=${waNum}" target="_blank" class="w-9 h-9 rounded-full bg-emerald-600/15 border border-emerald-600/30 flex items-center justify-center text-emerald-300 active:bg-emerald-600/30 transition-colors">
               <span class="material-symbols-outlined text-lg">chat</span>
             </a>
           </div>
@@ -438,7 +442,7 @@ function openDetail(idx) {
       </div>
 
       <div class="glass rounded-3xl p-3 flex gap-2">
-        <a href="https://wa.me/${waNum}" target="_blank"
+        <a href="https://api.whatsapp.com/send?phone=${waNum}" target="_blank"
           class="flex-1 h-12 bg-emerald-600 active:bg-emerald-500 active:scale-95 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-1.5 transition-all uppercase tracking-wide">
           <span class="material-symbols-outlined text-lg">chat</span>WhatsApp
         </a>
@@ -544,4 +548,3 @@ fetchData(true);
 </script>
 </body>
 </html>
-
