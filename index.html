@@ -1,31 +1,34 @@
 <!DOCTYPE html>
 <html class="dark" lang="es">
+
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>Leads · Náutica Aire Libre</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script>
-  tailwind.config = {
-    darkMode: "class",
-    theme: {
-      extend: {
-        colors: {
-          "primary": "#0ea5e9",
-          "ocean": "#075985",
-          "background-dark": "#020617",
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+  <title>Leads · Náutica Aire Libre</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#0ea5e9",
+            "ocean": "#075985",
+            "background-dark": "#020617",
+          },
+          fontFamily: { "display": ["Inter", "sans-serif"] },
         },
-        fontFamily: { "display": ["Inter", "sans-serif"] },
       },
-    },
-  }
-</script>
-<style type="text/tailwindcss">
-  @layer utilities {
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
     .glass { @apply bg-white/5 backdrop-blur-xl border border-white/10; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -86,242 +89,267 @@
   .spinning { animation: spin 0.8s linear infinite; }
 </style>
 </head>
+
 <body class="font-display bg-background-dark text-slate-100 min-h-screen flex justify-center">
 
-<div class="w-full max-w-[430px] min-h-screen bg-background-dark relative flex flex-col overflow-hidden">
+  <div class="w-full max-w-[430px] min-h-screen bg-background-dark relative flex flex-col overflow-hidden">
 
-  <!-- Ambient glow -->
-  <div class="fixed -top-32 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
-  <div class="fixed -bottom-32 -left-32 w-96 h-96 bg-ocean/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
-
-  <!-- HEADER -->
-  <header class="sticky top-0 z-50 bg-background-dark/80 ios-blur px-5 pt-12 pb-2 border-b border-white/5">
-    <div class="flex justify-between items-center mb-5">
-      <div>
-        <h1 class="text-2xl font-extrabold tracking-tight text-white">Leads</h1>
-        <p class="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-0.5">Náutica Aire Libre</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="flex items-center gap-1.5 px-3 py-1.5 glass rounded-full text-[10px] font-bold text-slate-400">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 status-pulse"></span>
-          <span id="statusText">Live</span>
-        </div>
-        <button id="btnRefresh" onclick="fetchData(true)" class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-transform">
-          <span class="material-symbols-outlined text-xl" id="refreshIcon">sync</span>
-        </button>
-      </div>
+    <!-- Ambient glow -->
+    <div class="fixed -top-32 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0">
+    </div>
+    <div class="fixed -bottom-32 -left-32 w-96 h-96 bg-ocean/20 rounded-full blur-[120px] pointer-events-none z-0">
     </div>
 
-    <!-- KPI chips scrollables -->
-    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-3">
-      <div class="flex-shrink-0 glass rounded-2xl px-4 py-2.5 flex flex-col min-w-[68px]" style="border-left:4px solid #0ea5e9">
-        <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Total</span>
-        <span class="text-lg font-black text-white" id="kpiTotal">—</span>
-      </div>
-      <div class="flex-shrink-0 rounded-2xl px-4 py-2.5 flex flex-col min-w-[76px]" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-left:4px solid #10b981">
-        <span class="text-[9px] text-emerald-500/70 font-bold uppercase tracking-wider">Entregan</span>
-        <span class="text-lg font-black text-emerald-400" id="kpiUsado">—</span>
-      </div>
-      <div class="flex-shrink-0 rounded-2xl px-4 py-2.5 flex flex-col min-w-[76px]" style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);border-left:4px solid #a78bfa">
-        <span class="text-[9px] font-bold uppercase tracking-wider" style="color:rgba(167,139,250,0.7)">Plan/Fin</span>
-        <span class="text-lg font-black" style="color:#a78bfa" id="kpiFinanciacion">—</span>
-      </div>
-      <div class="flex-shrink-0 rounded-2xl px-4 py-2.5 flex flex-col min-w-[68px]" style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-left:4px solid #38bdf8">
-        <span class="text-[9px] text-sky-400/70 font-bold uppercase tracking-wider">Sin fin.</span>
-        <span class="text-lg font-black text-sky-400" id="kpiNo">—</span>
-      </div>
-    </div>
-
-    <!-- Filtros -->
-    <div class="flex gap-2 pb-3">
-      <button onclick="setFilter('todos')" id="chip-todos" class="chip-active flex-1 py-2 text-[11px] font-black uppercase tracking-tight rounded-xl border transition-all">Todos</button>
-      <button onclick="setFilter('si')" id="chip-si" class="chip-inactive flex-1 py-2 text-[11px] font-black uppercase tracking-tight rounded-xl border transition-all">Entregan</button>
-      <button onclick="setFilter('no')" id="chip-no" class="chip-inactive flex-1 py-2 text-[11px] font-black uppercase tracking-tight rounded-xl border transition-all">No entregan</button>
-    </div>
-
-    <!-- Search -->
-    <div class="relative mb-3">
-      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl select-none">search</span>
-      <input id="searchInput" oninput="renderCards()" type="text" placeholder="Buscar nombre o teléfono..."
-        class="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-primary/50 transition-colors"/>
-    </div>
-  </header>
-
-  <!-- MAIN -->
-  <main class="flex-1 px-4 pt-5 pb-32 overflow-y-auto space-y-3" id="cardContainer">
-    <div class="flex flex-col items-center justify-center py-20 text-slate-500">
-      <span class="material-symbols-outlined text-5xl mb-3 spinning">sync</span>
-      <p class="text-sm font-medium">Cargando leads...</p>
-    </div>
-  </main>
-
-  <!-- BOTTOM NAV -->
-  <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-background-dark/90 ios-blur border-t border-white/5 px-8 pt-3 pb-8 flex justify-between items-center z-50">
-    <button class="flex flex-col items-center gap-1 text-primary">
-      <span class="material-symbols-outlined">group</span>
-      <span class="text-[10px] font-bold">Leads</span>
-    </button>
-    <button class="flex flex-col items-center gap-1 text-slate-500" onclick="toggleCharts()">
-      <span class="material-symbols-outlined">analytics</span>
-      <span class="text-[10px] font-bold">Gráficos</span>
-    </button>
-    <button class="flex flex-col items-center gap-1 text-slate-500" onclick="fetchData(true)">
-      <span class="material-symbols-outlined">cloud_sync</span>
-      <span class="text-[10px] font-bold" id="nextRefresh">30s</span>
-    </button>
-  </nav>
-
-</div>
-
-<!-- CHARTS OVERLAY -->
-<div id="chartsOverlay" class="detail-overlay">
-  <div class="detail-sheet">
-    <div class="flex justify-center pt-3 pb-2">
-      <div class="w-10 h-1 bg-white/20 rounded-full"></div>
-    </div>
-    <div class="px-5 pb-8">
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 bg-background-dark/80 ios-blur px-5 pt-12 pb-2 border-b border-white/5">
       <div class="flex justify-between items-center mb-5">
-        <h2 class="text-lg font-black text-white">Análisis de Leads</h2>
-        <button onclick="toggleCharts()" class="w-8 h-8 glass rounded-full flex items-center justify-center text-slate-400 border border-white/10">
-          <span class="material-symbols-outlined text-lg">close</span>
-        </button>
+        <div>
+          <h1 class="text-2xl font-extrabold tracking-tight text-white">Leads</h1>
+          <p class="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-0.5">Náutica Aire Libre</p>
+        </div>
+
+        <div class="flex gap-2 overflow-x-auto no-scrollbar pb-3">
+          <div class="flex-shrink-0 glass rounded-2xl px-4 py-2.5 flex flex-col min-w-[68px]"
+            style="border-left:4px solid #0ea5e9">
+            <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Total</span>
+            <span class="text-lg font-black text-white" id="kpiTotal">—</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 glass rounded-full text-[10px] font-bold text-slate-400">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 status-pulse"></span>
+            <span id="statusText">Live</span>
+          </div>
+          <button id="btnRefresh" onclick="fetchData(true)"
+            class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-transform">
+            <span class="material-symbols-outlined text-xl" id="refreshIcon">sync</span>
+          </button>
+        </div>
       </div>
-      <div class="rounded-2xl p-4 mb-4" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07)">
-        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Entrega de Usado</p>
-        <div style="height:180px;position:relative"><canvas id="chartUsado"></canvas></div>
+
+      <!-- KPI chips scrollables -->
+      <div class="flex gap-2 overflow-x-auto no-scrollbar pb-3">
+        <div>
+          <p class="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-0.5">Entrega de Usados</p>
+        </div>
+        <div class="flex-shrink-0 rounded-2xl px-4 py-2.5 flex flex-col min-w-[76px]"
+          style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-left:4px solid #10b981">
+          <span class="text-[9px] text-emerald-500/70 font-bold uppercase tracking-wider">Entrega</span>
+          <span class="text-lg font-black text-emerald-400" id="kpiUsado">—</span>
+        </div>
+        <div class="flex-shrink-0 rounded-2xl px-4 py-2.5 flex flex-col min-w-[76px]"
+          style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);border-left:4px solid #a78bfa">
+          <span class="text-[9px] font-bold uppercase tracking-wider" style="color:#f38116">Lancha Plan</span>
+          <span class="text-lg font-black" style="color:#f38116" id="kpiFinanciacion">—</span>
+        </div>
+        <div class="flex-shrink-0 rounded-2xl px-4 py-2.5 flex flex-col min-w-[68px]"
+          style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-left:4px solid #38bdf8">
+          <span class="text-[9px] text-sky-400/70 font-bold uppercase tracking-wider">Sin fin.</span>
+          <span class="text-lg font-black text-sky-400" id="kpiNo">—</span>
+        </div>
       </div>
-      <div class="rounded-2xl p-4" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07)">
-        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Tipo de Financiación</p>
-        <div style="height:180px;position:relative"><canvas id="chartFin"></canvas></div>
+
+      <!-- Filtros -->
+      <div class="flex gap-2 pb-3">
+        <button onclick="setFilter('todos')" id="chip-todos"
+          class="chip-active flex-1 py-2 text-[11px] font-black uppercase tracking-tight rounded-xl border transition-all">Todos</button>
+        <button onclick="setFilter('si')" id="chip-si"
+          class="chip-inactive flex-1 py-2 text-[11px] font-black uppercase tracking-tight rounded-xl border transition-all">Entregan</button>
+        <button onclick="setFilter('no')" id="chip-no"
+          class="chip-inactive flex-1 py-2 text-[11px] font-black uppercase tracking-tight rounded-xl border transition-all">No
+          entregan</button>
+      </div>
+
+      <!-- Search -->
+      <div class="relative mb-3">
+        <span
+          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl select-none">search</span>
+        <input id="searchInput" oninput="renderCards()" type="text" placeholder="Buscar nombre o teléfono..."
+          class="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 outline-none focus:border-primary/50 transition-colors" />
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="flex-1 px-4 pt-5 pb-32 overflow-y-auto space-y-3" id="cardContainer">
+      <div class="flex flex-col items-center justify-center py-20 text-slate-500">
+        <span class="material-symbols-outlined text-5xl mb-3 spinning">sync</span>
+        <p class="text-sm font-medium">Cargando leads...</p>
+      </div>
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav
+      class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-background-dark/90 ios-blur border-t border-white/5 px-8 pt-3 pb-8 flex justify-between items-center z-50">
+      <button class="flex flex-col items-center gap-1 text-primary">
+        <span class="material-symbols-outlined">group</span>
+        <span class="text-[10px] font-bold">Leads</span>
+      </button>
+      <button class="flex flex-col items-center gap-1 text-slate-500" onclick="toggleCharts()">
+        <span class="material-symbols-outlined">analytics</span>
+        <span class="text-[10px] font-bold">Gráficos</span>
+      </button>
+      <button class="flex flex-col items-center gap-1 text-slate-500" onclick="fetchData(true)">
+        <span class="material-symbols-outlined">cloud_sync</span>
+        <span class="text-[10px] font-bold" id="nextRefresh">30s</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- CHARTS OVERLAY -->
+  <div id="chartsOverlay" class="detail-overlay">
+    <div class="detail-sheet">
+      <div class="flex justify-center pt-3 pb-2">
+        <div class="w-10 h-1 bg-white/20 rounded-full"></div>
+      </div>
+      <div class="px-5 pb-8">
+        <div class="flex justify-between items-center mb-5">
+          <h2 class="text-lg font-black text-white">Análisis de Leads</h2>
+          <button onclick="toggleCharts()"
+            class="w-8 h-8 glass rounded-full flex items-center justify-center text-slate-400 border border-white/10">
+            <span class="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+        <div class="rounded-2xl p-4 mb-4"
+          style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07)">
+          <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Entrega de Usado</p>
+          <div style="height:180px;position:relative"><canvas id="chartUsado"></canvas></div>
+        </div>
+        <div class="rounded-2xl p-4" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07)">
+          <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Tipo de Financiación</p>
+          <div style="height:180px;position:relative"><canvas id="chartFin"></canvas></div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- DETAIL OVERLAY -->
-<div id="detailOverlay" class="detail-overlay">
-  <div class="detail-sheet" id="detailSheet"></div>
-</div>
+  <!-- DETAIL OVERLAY -->
+  <div id="detailOverlay" class="detail-overlay">
+    <div class="detail-sheet" id="detailSheet"></div>
+  </div>
 
-<!-- TOAST -->
-<div id="toast" class="fixed bottom-28 left-1/2 -translate-x-1/2 z-[200] bg-slate-800 border border-white/10 backdrop-blur-xl px-5 py-3 rounded-2xl text-sm font-semibold text-white shadow-2xl opacity-0 pointer-events-none transition-all duration-300 whitespace-nowrap"></div>
+  <!-- TOAST -->
+  <div id="toast"
+    class="fixed bottom-28 left-1/2 -translate-x-1/2 z-[200] bg-slate-800 border border-white/10 backdrop-blur-xl px-5 py-3 rounded-2xl text-sm font-semibold text-white shadow-2xl opacity-0 pointer-events-none transition-all duration-300 whitespace-nowrap">
+  </div>
 
-<script>
-const SHEET_ID = '1eYVpy1qEdCy91aqyV77jTkqFbYPOT4ubSouZokIXLSk';
-const SHEET_GID = '0';
-const REFRESH_SECONDS = 30;
+  <script>
+    const SHEET_ID = '1eYVpy1qEdCy91aqyV77jTkqFbYPOT4ubSouZokIXLSk';
+    const SHEET_GID = '0';
+    const REFRESH_SECONDS = 30;
 
-let allData = [];
-let currentFilter = 'todos';
-let countdown = REFRESH_SECONDS;
-let countdownTimer = null;
-let refreshTimer = null;
-let chartUsado = null, chartFin = null;
+    let allData = [];
+    let currentFilter = 'todos';
+    let countdown = REFRESH_SECONDS;
+    let countdownTimer = null;
+    let refreshTimer = null;
+    let chartUsado = null, chartFin = null;
 
-function norm(s) {
-  return (s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-}
+    function norm(s) {
+      return (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
 
-function col(row, ...keys) {
-  for (const k of keys) {
-    const found = Object.keys(row).find(rk => norm(rk) === norm(k));
-    if (found !== undefined && row[found] !== undefined) return row[found];
-  }
-  return '';
-}
+    function col(row, ...keys) {
+      for (const k of keys) {
+        const found = Object.keys(row).find(rk => norm(rk) === norm(k));
+        if (found !== undefined && row[found] !== undefined) return row[found];
+      }
+      return '';
+    }
 
-function showToast(msg, ok=true) {
-  const t = document.getElementById('toast');
-  t.textContent = (ok ? '✅ ' : '❌ ') + msg;
-  t.style.opacity = '1';
-  setTimeout(() => { t.style.opacity = '0'; }, 2800);
-}
+    function showToast(msg, ok = true) {
+      const t = document.getElementById('toast');
+      t.textContent = (ok ? '✅ ' : '❌ ') + msg;
+      t.style.opacity = '1';
+      setTimeout(() => { t.style.opacity = '0'; }, 2800);
+    }
 
-async function fetchData(manual=false) {
-  const icon = document.getElementById('refreshIcon');
-  icon.classList.add('spinning');
-  try {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error();
-    const csv = await res.text();
-    const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
-    allData = parsed.data;
-    updateKPIs();
-    renderCards();
-    if (document.getElementById('chartsOverlay').classList.contains('open')) buildCharts();
-    document.getElementById('statusText').textContent = 'Live';
-    if (manual) showToast(`${allData.length} leads cargados`);
-    resetCountdown();
-  } catch(e) {
-    document.getElementById('statusText').textContent = 'Error';
-    showToast('No se pudo cargar el sheet', false);
-  }
-  icon.classList.remove('spinning');
-}
+    async function fetchData(manual = false) {
+      const icon = document.getElementById('refreshIcon');
+      icon.classList.add('spinning');
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error();
+        const csv = await res.text();
+        const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
+        allData = parsed.data;
+        updateKPIs();
+        renderCards();
+        if (document.getElementById('chartsOverlay').classList.contains('open')) buildCharts();
+        document.getElementById('statusText').textContent = 'Live';
+        if (manual) showToast(`${allData.length} leads cargados`);
+        resetCountdown();
+      } catch (e) {
+        document.getElementById('statusText').textContent = 'Error';
+        showToast('No se pudo cargar el sheet', false);
+      }
+      icon.classList.remove('spinning');
+    }
 
-function updateKPIs() {
-  const total = allData.length;
-  const usado = allData.filter(r => norm(col(r,'entrega usado','entrega_usado')) === 'si').length;
-  const finSi = allData.filter(r => {
-    const f = norm(col(r,'financiacion','financiacion'));
-    return f.includes('plan') || f === 'si' || f === 'si';
-  }).length;
-  const finNo = allData.filter(r => norm(col(r,'financiacion','financiacion')) === 'no').length;
+    function updateKPIs() {
+      const total = allData.length;
+      const usado = allData.filter(r => norm(col(r, 'entrega usado', 'entrega_usado')) === 'si').length;
+      const finSi = allData.filter(r => {
+        const f = norm(col(r, 'financiacion', 'financiacion'));
+        return f.includes('plan') || f === 'si' || f === 'si';
+      }).length;
+      const finNo = allData.filter(r => norm(col(r, 'financiacion', 'financiacion')) === 'no').length;
 
-  [['kpiTotal',total],['kpiUsado',usado],['kpiFinanciacion',finSi],['kpiNo',finNo]].forEach(([id,target]) => {
-    const el = document.getElementById(id);
-    let n = 0;
-    clearInterval(el._t);
-    el._t = setInterval(() => {
-      n = Math.min(n + Math.ceil(target/20), target);
-      el.textContent = n;
-      if (n >= target) clearInterval(el._t);
-    }, 30);
-  });
-}
+      [['kpiTotal', total], ['kpiUsado', usado], ['kpiFinanciacion', finSi], ['kpiNo', finNo]].forEach(([id, target]) => {
+        const el = document.getElementById(id);
+        let n = 0;
+        clearInterval(el._t);
+        el._t = setInterval(() => {
+          n = Math.min(n + Math.ceil(target / 20), target);
+          el.textContent = n;
+          if (n >= target) clearInterval(el._t);
+        }, 30);
+      });
+    }
 
-function getCardStyle(row) {
-  const u = norm(col(row,'entrega usado','entrega_usado'));
-  const f = norm(col(row,'financiacion','financiacion'));
-  if (u === 'si') return { cls:'card-si', color:'#10b981', label:'ENTREGA USADO', badgeCls:'bg-emerald-500 text-emerald-950' };
-  if (f.includes('plan')) return { cls:'card-plan', color:'#a78bfa', label:'CON PLAN', badgeCls:'bg-violet-500 text-white' };
-  if (f === 'si') return { cls:'card-plan', color:'#a78bfa', label:'FINANCIADO', badgeCls:'bg-violet-500 text-white' };
-  if (u === 'no' || f === 'no') return { cls:'card-no', color:'#38bdf8', label:'SIN ENTREGA', badgeCls:'bg-sky-800 text-sky-200' };
-  return { cls:'card-default', color:'#475569', label:'LEAD', badgeCls:'bg-slate-700 text-slate-300' };
-}
+    function getCardStyle(row) {
+      const u = norm(col(row, 'entrega usado', 'entrega_usado'));
+      const f = norm(col(row, 'financiacion', 'financiacion'));
+      if (u === 'si') return { cls: 'card-si', color: '#10b981', label: 'ENTREGA USADO', badgeCls: 'bg-emerald-500 text-emerald-950' };
+      if (f.includes('plan')) return { cls: 'card-plan', color: '#a78bfa', label: 'CON PLAN', badgeCls: 'bg-violet-500 text-white' };
+      if (f === 'si') return { cls: 'card-plan', color: '#a78bfa', label: 'FINANCIADO', badgeCls: 'bg-violet-500 text-white' };
+      if (u === 'no' || f === 'no') return { cls: 'card-no', color: '#38bdf8', label: 'SIN ENTREGA', badgeCls: 'bg-sky-800 text-sky-200' };
+      return { cls: 'card-default', color: '#475569', label: 'LEAD', badgeCls: 'bg-slate-700 text-slate-300' };
+    }
 
-function finBadge(val) {
-  const v = norm(val);
-  if (v === 'si') return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-emerald-950">SI</span>`;
-  if (v === 'no') return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-700 text-slate-300">NO</span>`;
-  if (v.includes('plan')) return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-violet-600 text-white">PLAN</span>`;
-  if (val && val !== '—') return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-700 text-slate-300">${val}</span>`;
-  return `<span class="text-slate-500 text-xs">—</span>`;
-}
+    function finBadge(val) {
+      const v = norm(val);
+      if (v === 'si') return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-emerald-950">SI</span>`;
+      if (v === 'no') return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-700 text-slate-300">NO</span>`;
+      if (v.includes('plan')) return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-violet-600 text-white">PLAN</span>`;
+      if (val && val !== '—') return `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-700 text-slate-300">${val}</span>`;
+      return `<span class="text-slate-500 text-xs">—</span>`;
+    }
 
-function renderCards() {
-  const search = norm(document.getElementById('searchInput').value);
-  let data = [...allData];
+    function renderCards() {
+      const search = norm(document.getElementById('searchInput').value);
+      let data = [...allData];
 
-  if (currentFilter === 'si') data = data.filter(r => norm(col(r,'entrega usado','entrega_usado')) === 'si');
-  else if (currentFilter === 'no') data = data.filter(r => norm(col(r,'entrega usado','entrega_usado')) === 'no');
+      if (currentFilter === 'si') data = data.filter(r => norm(col(r, 'entrega usado', 'entrega_usado')) === 'si');
+      else if (currentFilter === 'no') data = data.filter(r => norm(col(r, 'entrega usado', 'entrega_usado')) === 'no');
 
-  if (search) data = data.filter(r => {
-    return norm(col(r,'nombre','Nombre')).includes(search) ||
-           norm(col(r,'telefono','teléfono','Telefono','Teléfono')).includes(search);
-  });
+      if (search) data = data.filter(r => {
+        return norm(col(r, 'nombre', 'Nombre')).includes(search) ||
+          norm(col(r, 'telefono', 'teléfono', 'Telefono', 'Teléfono')).includes(search);
+      });
 
-  const container = document.getElementById('cardContainer');
+      const container = document.getElementById('cardContainer');
 
-  if (data.length === 0) {
-    container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 text-slate-500">
+      if (data.length === 0) {
+        container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 text-slate-500">
       <span class="material-symbols-outlined text-5xl mb-3">search_off</span>
       <p class="text-sm font-medium">Sin resultados</p></div>`;
-    return;
-  }
+        return;
+      }
 
-  container.innerHTML = `
+      container.innerHTML = `
     <div class="flex items-center justify-between px-1 mb-2">
       <h2 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${data.length} leads</h2>
       <div class="flex items-center gap-1.5 text-[10px] font-bold text-primary">
@@ -334,16 +362,16 @@ function renderCards() {
       <span class="material-symbols-outlined text-slate-700 text-3xl">anchor</span>
       <p class="text-slate-600 text-xs mt-1 italic">Fin de la lista</p>
     </div>`;
-}
+    }
 
-function buildCard(row, idx) {
-  const nombre = col(row,'nombre','Nombre') || 'Sin nombre';
-  const tel = col(row,'telefono','teléfono','Telefono','Teléfono') || '—';
-  const usado = col(row,'entrega usado','entrega_usado','Entrega usado') || '—';
-  const fin = col(row,'financiacion','financiacion') || '—';
-  const st = getCardStyle(row);
+    function buildCard(row, idx) {
+      const nombre = col(row, 'nombre', 'Nombre') || 'Sin nombre';
+      const tel = col(row, 'telefono', 'teléfono', 'Telefono', 'Teléfono') || '—';
+      const usado = col(row, 'entrega usado', 'entrega_usado', 'Entrega usado') || '—';
+      const fin = col(row, 'financiacion', 'financiacion') || '—';
+      const st = getCardStyle(row);
 
-  return `
+      return `
   <div class="${st.cls} rounded-3xl p-5 border backdrop-blur-xl shadow-sm cursor-pointer active:scale-[0.98] transition-transform" onclick="openDetail(${idx})">
     <div class="flex justify-between items-start mb-4">
       <div class="flex-1 min-w-0 pr-3">
@@ -370,22 +398,22 @@ function buildCard(row, idx) {
       <span class="material-symbols-outlined text-base">chevron_right</span>
     </div>
   </div>`;
-}
+    }
 
-function openDetail(idx) {
-  const row = allData[idx];
-  const nombre = col(row,'nombre','Nombre') || 'Sin nombre';
-  const tel = col(row,'telefono','teléfono','Telefono','Teléfono') || '—';
-  const usado = col(row,'entrega usado','entrega_usado','Entrega usado') || '—';
-  const fin = col(row,'financiacion','financiacion') || '—';
-  const st = getCardStyle(row);
-  let waNum = tel.replace(/\D/g,'');
-  if (waNum && !waNum.startsWith('54')) {
-    if (waNum.startsWith('0')) waNum = waNum.substring(1);
-    waNum = '54' + waNum;
-  }
+    function openDetail(idx) {
+      const row = allData[idx];
+      const nombre = col(row, 'nombre', 'Nombre') || 'Sin nombre';
+      const tel = col(row, 'telefono', 'teléfono', 'Telefono', 'Teléfono') || '—';
+      const usado = col(row, 'entrega usado', 'entrega_usado', 'Entrega usado') || '—';
+      const fin = col(row, 'financiacion', 'financiacion') || '—';
+      const st = getCardStyle(row);
+      let waNum = tel.replace(/\D/g, '');
+      if (waNum && !waNum.startsWith('54')) {
+        if (waNum.startsWith('0')) waNum = waNum.substring(1);
+        waNum = '54' + waNum;
+      }
 
-  document.getElementById('detailSheet').innerHTML = `
+      document.getElementById('detailSheet').innerHTML = `
     <div class="flex justify-center pt-3 pb-1"><div class="w-10 h-1 bg-white/20 rounded-full"></div></div>
     <div class="px-5 pb-8">
       <div class="rounded-3xl p-5 mb-5 relative overflow-hidden" style="background:linear-gradient(135deg,${st.color}25,${st.color}08);border:1px solid ${st.color}20">
@@ -457,94 +485,100 @@ function openDetail(idx) {
       </div>
     </div>`;
 
-  document.getElementById('detailOverlay').classList.add('open');
-}
-
-function closeDetail() {
-  document.getElementById('detailOverlay').classList.remove('open');
-}
-
-function toggleCharts() {
-  const ov = document.getElementById('chartsOverlay');
-  ov.classList.toggle('open');
-  if (ov.classList.contains('open')) buildCharts();
-}
-
-function buildCharts() {
-  const usadoCounts = { 'Sí': 0, 'No': 0, 'Otro': 0 };
-  const finCounts = {};
-  allData.forEach(r => {
-    const u = norm(col(r,'entrega usado','entrega_usado'));
-    if (u === 'si') usadoCounts['Sí']++;
-    else if (u === 'no') usadoCounts['No']++;
-    else usadoCounts['Otro']++;
-    const f = (col(r,'financiacion','financiacion') || 'Sin datos').trim();
-    const fk = f.charAt(0).toUpperCase() + f.slice(1).toLowerCase();
-    finCounts[fk] = (finCounts[fk]||0)+1;
-  });
-
-  const base = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#94a3b8', font:{ family:'Inter', size:11 }, padding:12 } } } };
-  if (chartUsado) chartUsado.destroy();
-  chartUsado = new Chart(document.getElementById('chartUsado'), {
-    type:'doughnut',
-    data:{ labels:['Sí','No','Otro'], datasets:[{
-      data:[usadoCounts['Sí'],usadoCounts['No'],usadoCounts['Otro']],
-      backgroundColor:['rgba(16,185,129,0.8)','rgba(56,189,248,0.8)','rgba(71,85,105,0.5)'],
-      borderColor:['#10b981','#38bdf8','#475569'], borderWidth:1.5, hoverOffset:6
-    }]},
-    options:{ ...base, cutout:'65%' }
-  });
-
-  if (chartFin) chartFin.destroy();
-  const fl = Object.keys(finCounts);
-  const colors = ['rgba(167,139,250,0.8)','rgba(16,185,129,0.8)','rgba(56,189,248,0.8)','rgba(251,191,36,0.8)','rgba(248,113,113,0.8)'];
-  chartFin = new Chart(document.getElementById('chartFin'), {
-    type:'bar',
-    data:{ labels:fl, datasets:[{
-      data:fl.map(k=>finCounts[k]),
-      backgroundColor:fl.map((_,i)=>colors[i%colors.length]),
-      borderRadius:6, borderSkipped:false
-    }]},
-    options:{ ...base,
-      scales:{
-        x:{ ticks:{ color:'#94a3b8', font:{family:'Inter'} }, grid:{ color:'rgba(255,255,255,0.05)' } },
-        y:{ ticks:{ color:'#94a3b8', stepSize:1 }, grid:{ color:'rgba(255,255,255,0.05)' }, beginAtZero:true }
-      },
-      plugins:{ ...base.plugins, legend:{ display:false } }
+      document.getElementById('detailOverlay').classList.add('open');
     }
-  });
-}
 
-function setFilter(f) {
-  currentFilter = f;
-  ['todos','si','no'].forEach(id => {
-    document.getElementById(`chip-${id}`).className =
-      document.getElementById(`chip-${id}`).className
-        .replace(/chip-(active|inactive)/g,'') +
-      (id === f ? ' chip-active' : ' chip-inactive');
-  });
-  renderCards();
-}
+    function closeDetail() {
+      document.getElementById('detailOverlay').classList.remove('open');
+    }
 
-function resetCountdown() {
-  clearInterval(countdownTimer);
-  clearTimeout(refreshTimer);
-  countdown = REFRESH_SECONDS;
-  countdownTimer = setInterval(() => {
-    countdown--;
-    document.getElementById('nextRefresh').textContent = `${countdown}s`;
-    if (countdown <= 0) clearInterval(countdownTimer);
-  }, 1000);
-  refreshTimer = setTimeout(() => fetchData(false), REFRESH_SECONDS * 1000);
-}
+    function toggleCharts() {
+      const ov = document.getElementById('chartsOverlay');
+      ov.classList.toggle('open');
+      if (ov.classList.contains('open')) buildCharts();
+    }
 
-['detailOverlay','chartsOverlay'].forEach(id => {
-  document.getElementById(id).addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('open');
-  });
-});
+    function buildCharts() {
+      const usadoCounts = { 'Sí': 0, 'No': 0, 'Otro': 0 };
+      const finCounts = {};
+      allData.forEach(r => {
+        const u = norm(col(r, 'entrega usado', 'entrega_usado'));
+        if (u === 'si') usadoCounts['Sí']++;
+        else if (u === 'no') usadoCounts['No']++;
+        else usadoCounts['Otro']++;
+        const f = (col(r, 'financiacion', 'financiacion') || 'Sin datos').trim();
+        const fk = f.charAt(0).toUpperCase() + f.slice(1).toLowerCase();
+        finCounts[fk] = (finCounts[fk] || 0) + 1;
+      });
 
-fetchData(true);
-</script>
+      const base = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 }, padding: 12 } } } };
+      if (chartUsado) chartUsado.destroy();
+      chartUsado = new Chart(document.getElementById('chartUsado'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Sí', 'No', 'Otro'], datasets: [{
+            data: [usadoCounts['Sí'], usadoCounts['No'], usadoCounts['Otro']],
+            backgroundColor: ['rgba(16,185,129,0.8)', 'rgba(56,189,248,0.8)', 'rgba(71,85,105,0.5)'],
+            borderColor: ['#10b981', '#38bdf8', '#475569'], borderWidth: 1.5, hoverOffset: 6
+          }]
+        },
+        options: { ...base, cutout: '65%' }
+      });
+
+      if (chartFin) chartFin.destroy();
+      const fl = Object.keys(finCounts);
+      const colors = ['rgba(167,139,250,0.8)', 'rgba(16,185,129,0.8)', 'rgba(56,189,248,0.8)', 'rgba(251,191,36,0.8)', 'rgba(248,113,113,0.8)'];
+      chartFin = new Chart(document.getElementById('chartFin'), {
+        type: 'bar',
+        data: {
+          labels: fl, datasets: [{
+            data: fl.map(k => finCounts[k]),
+            backgroundColor: fl.map((_, i) => colors[i % colors.length]),
+            borderRadius: 6, borderSkipped: false
+          }]
+        },
+        options: {
+          ...base,
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { family: 'Inter' } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#94a3b8', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+          },
+          plugins: { ...base.plugins, legend: { display: false } }
+        }
+      });
+    }
+
+    function setFilter(f) {
+      currentFilter = f;
+      ['todos', 'si', 'no'].forEach(id => {
+        document.getElementById(`chip-${id}`).className =
+          document.getElementById(`chip-${id}`).className
+            .replace(/chip-(active|inactive)/g, '') +
+          (id === f ? ' chip-active' : ' chip-inactive');
+      });
+      renderCards();
+    }
+
+    function resetCountdown() {
+      clearInterval(countdownTimer);
+      clearTimeout(refreshTimer);
+      countdown = REFRESH_SECONDS;
+      countdownTimer = setInterval(() => {
+        countdown--;
+        document.getElementById('nextRefresh').textContent = `${countdown}s`;
+        if (countdown <= 0) clearInterval(countdownTimer);
+      }, 1000);
+      refreshTimer = setTimeout(() => fetchData(false), REFRESH_SECONDS * 1000);
+    }
+
+    ['detailOverlay', 'chartsOverlay'].forEach(id => {
+      document.getElementById(id).addEventListener('click', function (e) {
+        if (e.target === this) this.classList.remove('open');
+      });
+    });
+
+    fetchData(true);
+  </script>
 </body>
+
 </html>
