@@ -382,7 +382,7 @@ function openDetail(idx) {
   let waNum = tel.replace(/\D/g,'');
   if (waNum && !waNum.startsWith('54')) {
     if (waNum.startsWith('0')) waNum = waNum.substring(1);
-    waNum = '549' + waNum;
+    waNum = '54' + waNum;
   }
 
   document.getElementById('detailSheet').innerHTML = `
