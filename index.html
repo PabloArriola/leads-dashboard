@@ -288,6 +288,7 @@
 
       [['kpiTotal', total], ['kpiUsado', usado], ['kpiFinanciacion', finSi], ['kpiNo', finNo]].forEach(([id, target]) => {
         const el = document.getElementById(id);
+        if (!el) return;
         let n = 0;
         clearInterval(el._t);
         el._t = setInterval(() => {
