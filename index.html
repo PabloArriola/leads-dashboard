@@ -402,6 +402,7 @@
             const tel = col(row, 'telefono', 'teléfono', 'Telefono', 'Teléfono') || '—';
             const usado = col(row, 'entrega usado', 'entrega_usado', 'Entrega usado') || '—';
             const fin = col(row, 'financiacion', 'financiacion') || '—';
+            const mensaje = col(row, 'mensaje', 'Mensaje') || '—';
             const st = getCardStyle(row);
             let waNum = tel.replace(/\D/g, '');
             if (waNum && !waNum.startsWith('54')) {
@@ -454,7 +455,7 @@
       </div>
 
       <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Datos del Lead</p>
-      <div class="grid grid-cols-2 gap-3 mb-5">
+      <div class="grid grid-cols-2 gap-3 mb-3">
         <div class="glass rounded-2xl p-4">
           <p class="text-[9px] text-slate-500 font-bold uppercase mb-2">Entrega Usado</p>
           ${finBadge(usado)}
@@ -463,6 +464,11 @@
           <p class="text-[9px] text-slate-500 font-bold uppercase mb-2">Financiación</p>
           ${finBadge(fin)}
         </div>
+      </div>
+
+      <div class="glass rounded-2xl p-4 mb-5">
+        <p class="text-[9px] text-slate-500 font-bold uppercase mb-2">Mensaje</p>
+        <p class="text-sm font-medium text-slate-300 leading-relaxed">${mensaje}</p>
       </div>
 
       <div class="glass rounded-3xl p-3 flex gap-2">
